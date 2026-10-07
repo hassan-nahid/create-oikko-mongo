@@ -7,6 +7,14 @@
     "create-oikko-mongo": "bin/index.js"
   },
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassan-nahid/create-oikko-mongo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassan-nahid/create-oikko-mongo/issues"
+  },
+  "homepage": "https://github.com/hassan-nahid/create-oikko-mongo#readme",
   "keywords": [
     "oikko",
     "mern",
