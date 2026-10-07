@@ -1,6 +1,6 @@
 {
   "name": "create-oikko-mongo",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Production-ready MERN (MongoDB + Express + TypeScript) enterprise backend scaffolder by Oikko",
   "main": "./bin/index.js",
   "bin": {
