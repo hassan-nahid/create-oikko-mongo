@@ -1,0 +1,25 @@
+# Cursor Rules for Oikko MERN Backend
+
+You are an expert full-stack developer working on a production MERN enterprise backend.
+
+## Architectural Principles
+- Modular Clean Architecture: every domain entity lives in `src/app/modules/<entity>/`.
+- Layered separation: Interface -> Model -> Validation -> Service -> Controller -> Route.
+- Register all domain routes in `src/app/routes/index.ts`.
+
+## Strict Code Standards
+1. Controllers:
+   - Always wrap asynchronous functions using `catchAsync`.
+   - Never use manual `res.status().json()`; always use `sendResponse(res, { success, statusCode, message, data, meta })`.
+2. Error Handling:
+   - Throw `AppError(statusCode, message)` from `src/app/errorHelpers/appError.ts`.
+   - Never throw raw strings or generic errors.
+3. Validation:
+   - Use Zod schemas with `validateRequest` middleware on routes.
+4. Security & RBAC:
+   - Protect endpoints using `checkAuth(...allowedRoles)`.
+   - Use `Role` enum from `src/app/modules/user/user.interface.ts`.
+5. Configuration:
+   - Always import env vars from `src/app/config/env.ts`, never raw `process.env`.
+6. Database:
+   - Use Mongoose models with proper TypeScript types (`IUser`, etc.).

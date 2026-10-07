@@ -1,0 +1,145 @@
+# create-oikko-mongo
+> Production-grade, modular MongoDB, Express, and TypeScript enterprise backend scaffolder by Oikko.
+
+This file provides LLMs and AI Agents with complete context on `create-oikko-mongo`, including CLI execution syntax, non-interactive flags, architecture, and coding conventions.
+
+## Quick Reference for AI Agents
+
+When executing `create-oikko-mongo` from an AI Agent or automated script, ALWAYS use non-interactive flags to prevent TTY input blocking:
+
+```bash
+# Default setup (Recommended for AI agents):
+npx create-oikko-mongo <project-name> --yes
+
+# With custom parameters:
+npx create-oikko-mongo <project-name> --roles "user,admin,seller" --port 8000 --pm npm --yes
+
+# Fast scaffold without immediate npm install:
+npx create-oikko-mongo <project-name> --yes --no-install
+```
+
+### CLI Command Options
+
+- `[project-name]` (positional): Name of the target directory (default: `my-oikko-app`).
+- `-y, --yes, --default`: Run in non-interactive mode using defaults.
+- `-f, --force`: Overwrite target directory if it already exists.
+- `--port <number>`: HTTP server port (default: `5000`).
+- `--db <uri>`: MongoDB connection URI (default: `mongodb://localhost:27017/<project-name>`).
+- `--roles <list>`: Comma-separated list of roles (e.g. `user, admin, seller`).
+- `--pm <manager>`: Package manager (`npm` | `pnpm` | `yarn` | `bun`, default: `npm`).
+- `--latest`: Forces latest npm versions for all dependencies.
+- `--no-install`: Skips running `npm install`.
+- `-h, --help`: Displays CLI help and exits.
+- `-v, --version`: Displays package version and exits.
+
+---
+
+## Scaffolded Architecture & Project Layout
+
+Each project bootstrapped by `create-oikko-mongo` strictly follows a modular enterprise architecture:
+
+```
+<project-name>/
+├── src/
+│   ├── app.ts                         # Express app configuration & middleware pipeline
+│   ├── server.ts                      # Server bootstrap, DB & unhandled rejection handlers
+│   └── app/
+│       ├── config/                    # Config modules
+│       │   ├── db.ts                  # Mongoose connection logic
+│       │   ├── env.ts                 # Type-safe environment validation
+│       │   ├── passport.ts            # Local & Google OAuth strategies
+│       │   └── redis.config.ts        # Redis client & connection
+│       ├── errorHelpers/              # Custom AppError class
+│       │   └── appError.ts
+│       ├── helpers/                   # Error parsers (Zod, Mongoose Cast, Duplicate Key)
+│       ├── interfaces/                # Global type declaration merging
+│       │   └── index.d.ts             # Express.Request user typing
+│       ├── middlewares/
+│       │   ├── checkAuth.ts           # JWT verification & RBAC authorization
+│       │   ├── globalErrorHandler.ts  # Centralized HTTP error handler
+│       │   ├── notFound.ts            # 404 Route handler
+│       │   ├── requestLogger.ts       # Winston HTTP request logger
+│       │   └── validateRequest.ts     # Zod request validation middleware
+│       ├── modules/                   # Domain business modules
+│       │   ├── auth/                  # Login, OAuth, tokens, password recovery
+│       │   ├── otp/                   # OTP dispatch & verification
+│       │   └── user/                  # User CRUD, profiles, roles
+│       ├── routes/
+│       │   └── index.ts               # Application router aggregation
+│       └── utils/
+│           ├── catchAsync.ts          # Async try-catch wrapper for controllers
+│           ├── logger.ts              # Winston file & console logging
+│           ├── sendEmail.ts           # Nodemailer / Resend email service
+│           ├── sendResponse.ts        # Standardized API response utility
+│           └── userTokens.ts          # JWT token signing & verification
+├── .env                               # Auto-populated with cryptographically secure secrets
+├── .env.example                       # Reference environment variables
+├── .gitignore
+├── package.json
+└── tsconfig.json
+```
+
+---
+
+## Coding Conventions for Generated Code
+
+When an AI Agent writes code for an application created with `create-oikko-mongo`, adhere to these patterns:
+
+### 1. Modular Directory Layout
+Each feature lives in `src/app/modules/<featureName>/`:
+- `<feature>.interface.ts`: TypeScript types and enums
+- `<feature>.validation.ts`: Zod validation schemas
+- `<feature>.model.ts`: Mongoose schema and model
+- `<feature>.service.ts`: Business logic & database operations
+- `<feature>.controller.ts`: HTTP request/response handlers wrapped in `catchAsync`
+- `<feature>.route.ts`: Express routes with `validateRequest` and `checkAuth`
+
+### 2. Controller Pattern
+Always wrap controllers in `catchAsync` and respond using `sendResponse`:
+```typescript
+import { Request, Response } from "express";
+import httpStatus from "http-status-codes";
+import { catchAsync } from "../../utils/catchAsync";
+import { sendResponse } from "../../utils/sendResponse";
+import { ItemServices } from "./item.service";
+
+const createItem = catchAsync(async (req: Request, res: Response) => {
+    const result = await ItemServices.createItemService(req.body);
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Item created successfully",
+        data: result,
+    });
+});
+```
+
+### 3. Error Handling
+Never throw raw strings or generic errors. Throw `AppError`:
+```typescript
+import httpStatus from "http-status-codes";
+import AppError from "../../errorHelpers/appError";
+
+if (!item) {
+    throw new AppError(httpStatus.NOT_FOUND, "Item not found");
+}
+```
+
+### 4. Role-Based Access Control
+Enforce RBAC via `checkAuth`:
+```typescript
+import { Router } from "express";
+import { checkAuth } from "../../middlewares/checkAuth";
+import { Role } from "../user/user.interface";
+
+router.post("/manage", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), ItemController.manage);
+```
+
+### 5. Request Validation
+Enforce payload validation using Zod:
+```typescript
+import { validateRequest } from "../../middlewares/validateRequest";
+import { ItemValidation } from "./item.validation";
+
+router.post("/", validateRequest(ItemValidation.createItemSchema), ItemController.createItem);
+```
